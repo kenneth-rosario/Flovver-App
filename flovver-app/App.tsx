@@ -1,23 +1,30 @@
-import React, { Component } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-import Header from './components/static/Header';
-import Footer from './components/static/Footer';
-import Main from './components/Main';
+import React from 'react';
+import { NativeRouter, Switch, Route, Redirect } from 'react-router-native';
 
-export default class App extends Component {
-  render() {
-    return (
-      <View style={{
-        flex: 1,
-        flexDirection: 'column',
-        justifyContent: 'space-between',
-      }}>
-        <Header></Header>
-        <Main></Main>
-        <Footer></Footer>
-      </View>
-    );
-  }
-  
-}
+
+import Store from './store/Store'
+
+import Login from './components/login/Login';
+import InitialForm from './components/initial_forms/InitialForm'
+import Home from './components/home/Home'
+import InitialView from './components/calendar/InitialView'
+import FontLoad from './components/shared/FontLoad'
+
+const App = () => (
+    <Store>
+      <FontLoad>
+        <NativeRouter>
+          <Switch> 
+            <Route exact path="/Login" component={Login} />
+            <Route path="/InitialForm" component={InitialForm} />
+            <Route path="/Home" component={Home} />
+            <Route path="/" render={()=><Redirect to="/Home/Index"/>} /> 
+          </Switch>
+        </NativeRouter>
+      </FontLoad>
+    </Store>
+)
+
+
+export default App
 

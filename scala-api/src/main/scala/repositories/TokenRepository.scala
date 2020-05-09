@@ -9,13 +9,14 @@ import akka.http.scaladsl.server.Directives._
 
 trait TokenRepository {
 
-  protected val tokenExpirePeriodInDays:Int = 365
+  protected val tokenExpirePeriodInDays:Int = if (sys.env("ENV") == "PRODUCTION") 31 else 365
   protected val secretKey:String = sys.env("SECRET_KEY")
   protected val header:JwtHeader = JwtHeader("HS256")
 
-  protected def setClaims(email: String, expirePeriodInDays: Long): JwtClaimsSetMap =
+  protected def setClaims(email: String,id: Option[Long], expirePeriodInDays: Long): JwtClaimsSetMap =
     JwtClaimsSet(
       Map("email" -> email,
+        "id" -> id.getOrElse("").toString ,
         "expiredAt" -> (System.currentTimeMillis() + TimeUnit.DAYS
           .toMillis(expirePeriodInDays)).toString)
     )
@@ -35,7 +36,7 @@ trait TokenRepository {
       case Some(jwt) if JsonWebToken.validate(jwt, secretKey) =>
         provide(getClaims(jwt))
 
-      case _ => complete(StatusCodes.BadRequest)
+      case _ => complete(StatusCodes.Forbidden)
     }
 
 }

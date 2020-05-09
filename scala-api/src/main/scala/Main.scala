@@ -1,24 +1,27 @@
-import akka.actor.ActorSystem
-import akka.event.{Logging, LoggingAdapter}
+import actors.CycleAdderActor
+import akka.actor.{ActorSystem, Props}
 import akka.http.scaladsl.Http
-import akka.stream.ActorMaterializer
-import api.ApiErrorHandler
-import utils.{DatabaseConfig, MigrationConfig}
+import akka.http.scaladsl.server.Directives._
+import utils.{DatabaseConfig, LoggingConfig, MigrationConfig}
 
 import scala.concurrent.ExecutionContext
+import scala.concurrent.duration._
 
-object Main extends App with ApiErrorHandler with MigrationConfig with DatabaseConfig with Routes {
+object Main extends App with MigrationConfig with Routes with LoggingConfig {
 
-  private implicit val system = ActorSystem()
-  protected implicit val executor: ExecutionContext = system.dispatcher
-  protected val log: LoggingAdapter = Logging(system, getClass)
-  protected implicit val materializer: ActorMaterializer = ActorMaterializer()
-
-  // Just simple hello world in future concat al Routes in Routs.scala and add to Main using the with keyword
-  migrate()
+  implicit val system:ActorSystem = ActorSystem("FlovverApi")
+  implicit val executor: ExecutionContext = system.dispatcher
   
-  val bindingFuture = Http().bindAndHandle(routes, "0.0.0.0", 8080)
+  migrate()
 
-  println(s"Server online at http://0.0.0.0:8080/")
+  val cycleAdder = system.actorOf(Props[CycleAdderActor])
+
+  system.scheduler.scheduleAtFixedRate(0 milliseconds, 24 hours, cycleAdder, "tick")
+
+  logRequestResult(rejectionLogger)
+
+  val bindingFuture = Http().bindAndHandle(handler=logRequestResult(requestMethodAndResponseStatusAsInfo _)(routes), interface="0.0.0.0", port=sys.env("PORT").toInt )
+
+  println(s"Server online at 0.0.0.0:${sys.env("PORT")}")
 
 }
