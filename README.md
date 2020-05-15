@@ -8,7 +8,15 @@ make estimations for the user's menstrual cycle and notify an approximated impor
 dates. The user will also be able to link the app with other users to show
 their personal data.
 
+Please view other readmes in scala-api, flovver-app, and documents
+
 Based on: https://github.com/kenneth-rosario/scala-npm-postgres-docker-boilerplate
+
+Application figma mock up design prototype : https://www.figma.com/proto/Sa8Rgvi0cjKM6NcFmi6MaK/app-mockup?node-id=168%3A1&scaling=min-zoom
+
+Application expo demo link : https://expo.io/@flovver-corp/Flovver
+
+Application video demo link : https://www.youtube.com/watch?v=ZN5GHsWceT0&feature=youtu.be 
 
 # Pre-requisites:
 * Download the expo app in your phone for testing app  
@@ -73,12 +81,15 @@ expo start
     heroku pg:psql
 ```
 
+
 # Recommended Text editors and IDEs:
 * Visual Studio Code with Docker plugin. It is great for developing typescript apps and has plugins for scala
 * Any text editor and a terminal
 * Any Scala IDE for developing scala applications
 
 
-
-
+# Missing Functionality:
+* Add functionality for view only user types.
+* Add push notifications in server with the expo service
+* Add offline capabilities with expo's SecureStore
 

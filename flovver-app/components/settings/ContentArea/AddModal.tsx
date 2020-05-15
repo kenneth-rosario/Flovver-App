@@ -1,5 +1,5 @@
 import React, { useState, useContext, useEffect } from 'react'
-import { View, Text, TouchableOpacity, Modal, FlatList, StyleSheet, Image, Dimensions, TextInput } from 'react-native'
+import { View, Text, TouchableOpacity, Modal, FlatList, StyleSheet, Image, Dimensions, TextInput, Alert } from 'react-native'
 import * as COLORS from '../../../styles/colors'
 
 import { HOST } from '../../../backend_requests/constants'
@@ -9,14 +9,15 @@ import UserItem from './AddModal/UserItem'
 import { UserContext } from '../../../store/UserContext'
 
 import axios from 'axios'
+import Loading from '../../shared/Loading'
 
 const AddModal = ({addModalVisible, styles, setAddModalVisible}) => {
     const [text, setText] = useState('SEARCH...')
     const [usersData, setUsersData] = useState([])
     const [state, dispatcher] = useContext(UserContext)
+    const [isLoading, setIsLoading] = useState(false)
     
     // axios specific
-    
 
     useEffect( () => {
 
@@ -32,8 +33,7 @@ const AddModal = ({addModalVisible, styles, setAddModalVisible}) => {
             await axios.get(HOST + "user/" + text,
                 axios_options
             ).then(res => {
-                if(res.status == 200) { 
-                    console.log(res.data)
+                if(res.status === 200) { 
                     setUsersData(res.data)
                 }
             }).catch( thrown => {
@@ -50,32 +50,19 @@ const AddModal = ({addModalVisible, styles, setAddModalVisible}) => {
         }
         
     }, [text])
+
+    useEffect(() => {
+        if(addModalVisible){
+            setText("SEARCH...")
+        }
+    }, [addModalVisible])
+
+    useEffect(()=>{
+        if(isLoading) { setText("SEARCH...") }
+    }, [isLoading])
+
     // end axios specific
-
-    const DATA = [
-        {
-            id: 'bd7acbea-c1b1-46c2-aed5-3ad53abb28ba1',
-            email:"dimelo@dimelo.com",
-            image_url:"nose"
-        },
-        {
-            id: 'bd7acbea-c1b1-46c2-aed5-3ad53abb28ba2',
-            email:"dimelo@dimelo.com",
-            image_url:"nose"
-        },
-        {
-            id: 'bd7acbea-c1b1-46c2-aed5-3ad53abb28ba3',
-            email:"dimelo@dimelo.com",
-            image_url:"nose"
-        },
-        {
-            id: 'bd7acbea-c1b1-46c2-aed5-3ad53abb28ba4',
-            email:"dimelo@dimelo.com",
-            image_url:"nose"
-        },
-    ];
-
-
+    if(isLoading) return <Loading isVisible={isLoading} />
 
     return (
     <Modal
@@ -93,21 +80,17 @@ const AddModal = ({addModalVisible, styles, setAddModalVisible}) => {
                             maxLength={50} 
                             defaultValue=""
                             onChangeText={text => setText(text)}
+                            onFocus={()=>{setText("")}}
                             value={text}
                             disableFullscreenUI={true}
                     />
 
-                    {/* for each user, add to the list */}
-                    {/* 
-                        (style flex row 1) [image, name, add]
-                        source={require('../../../../images/Delete.png')}
-
-                    */}
                     <FlatList
                         style={{flex:1, marginTop:Dimensions.get("screen").height*0.01}}
-                        data={DATA} // array
-                        //renderItem={null} // renderItem({ item (object), index in array (number), separators })
-                        renderItem={({ item }) => <UserItem key={item.id} id={item.id} image_url={item.image_url} email={item.email} />}
+                        data={usersData} 
+                        renderItem={({ item }) => <UserItem key={item.id} id={item.id} image_url={item.image_url} email={item.email} 
+                            setIsLoading={setIsLoading}
+                        />}
                     />
                 </View>
                 <TouchableOpacity

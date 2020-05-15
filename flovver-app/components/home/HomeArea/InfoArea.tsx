@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react'
-import { View, StyleSheet, Text } from 'react-native'
+import { View, StyleSheet, Text, Alert } from 'react-native'
 import { UserContext } from '../../../store/UserContext' 
 import DateTimePicker from '@react-native-community/datetimepicker';
 
@@ -11,8 +11,6 @@ import * as requests from '../../../backend_requests/user'
 import * as actions from '../../../store/actions'
 
 import {useHistory} from 'react-router-native'
-
-import {useMenstrualData} from '../../shared/Hooks'
 
 import moment from 'moment'
 
@@ -53,21 +51,39 @@ const InfoArea = ({ ovulation, fertile, isFertile, setIsLoading }) => {
             cycle_id:t_id
         }).then( res => {
             console.log(res)
-            if(res && res.status && (res.status == 403 || res.status==401 || res.status == 400) ){
-                console.log("Timed Out sign in again")
-                    dispatcher(actions.setUser(null))
-                    dispatcher(actions.setToken(null))
-                    dispatcher(actions.setSignIn(false))
-                    dispatcher(actions.setSharedUsers(null))
-                    history.push("/Login")
-            }else if(res && res.status != 500 && res.data){
+            if(res && res.status === 200 && res.data){
                     dispatcher(actions.setUser(res.data))
-            }else{
-                throw "No internet or internal server eroror"
             }
         }).then(()=>{setIsLoading(false)})
-        .catch(e => {console.log(e); setIsLoading(false)})
+        .catch(e => {
 
+            if (e.response.status === 409){
+                Alert.alert("Cycle overlap, go to calendar to edit")
+            }
+            else if(e.response && e.response.status &&
+                (e.response.status === 403 || e.response.status === 401 || e.response.status === 400) ){
+                dispatcher(actions.setUser(null))
+                dispatcher(actions.setToken(null))
+                dispatcher(actions.setSignIn(false))
+                dispatcher(actions.setSharedUsers([]))
+                Alert.alert("Your session has timed out sign in again to continue")
+                history.push("/Login")
+            }
+            else{
+                Alert.alert("An error ocurred make sure you have internet connection")
+            }
+
+            console.log(e); 
+            setIsLoading(false);
+        
+        })
+
+    }
+
+    const getMinDate = () => {
+        let m1 = moment.utc(new Date())
+        m1.subtract(5, 'days')
+        return new Date(m1.format("YYYY-MM-DD"))
     }
 
     return( 
@@ -94,6 +110,7 @@ const InfoArea = ({ ovulation, fertile, isFertile, setIsLoading }) => {
             <DateTimePicker 
                 value={selectedDate}
                 onChange={onChange}
+                minimumDate={getMinDate()}
                 maximumDate={new Date()}
             />)   
         }

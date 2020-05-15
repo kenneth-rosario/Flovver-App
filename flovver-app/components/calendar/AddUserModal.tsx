@@ -5,7 +5,6 @@ import * as COLORS from '../../styles/colors'
 const AddUserModal = ({addUserModalVisible, setAddUserModalVisible, }) => {
 
     const [textValue, setTextValue] = useState('SEARCH...')
-    const [userExists, setUserExists] = useState(false) // expected to be used to test if user exists
     
     return(
         <Modal
@@ -93,6 +92,7 @@ const styles = StyleSheet.create({
         color:COLORS.DARK_GREY,
         fontSize:12,
         letterSpacing: 4,
+        
     },
 
     InputTextStyle:{

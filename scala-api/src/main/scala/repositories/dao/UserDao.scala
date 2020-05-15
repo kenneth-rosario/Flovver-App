@@ -35,7 +35,7 @@ object UserDao extends BaseDao {
 
       ( (u ,c) , m) <-
       query1 joinLeft menstrualTable.sortBy(_.bleed_start.desc) on (
-        _._2.id === _.calendar_id) take 3
+        _._2.id === _.calendar_id) take 5
 
     } yield (u, m)
 
@@ -61,6 +61,12 @@ object UserDao extends BaseDao {
           FROM users 
           WHERE lower(email) LIKE ${"%"+t_email+"%"}
           AND id != $id
+          AND id NOT IN (
+            SELECT su.users_id as id FROM shared_users su
+            JOIN calendar c ON su.calendar_id = c.id
+            WHERE c.owner_id = $id
+            AND su.is_allowed = true 
+          )
         """.as[Users]
       )
   }

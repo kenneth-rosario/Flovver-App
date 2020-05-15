@@ -11,7 +11,6 @@ import { updatePeriod } from '../../../backend_requests/user'
 
 import moment from 'moment'
 
-import * as requests from '../../../backend_requests/user'
 import * as actions from '../../../store/actions'
 
 import { useHistory } from 'react-router-native'
@@ -38,10 +37,11 @@ const ChangePeriodPicker = ({markedDays, setIsLoading}) => {
     const history = useHistory()
 
     const onDayLongPress = ( {dateString} ) => {
-        
+       
         for(let i = 0; i < state.user.cycle.length; i++){
             
             if(dateString === state.user.cycle[i].bleed_start){
+                
                 setSelectedId(state.user.cycle[i].id)
                 setMaxDate(new Date(state.user.cycle[i].bleed_end))
                 setStartSelected(true)
@@ -53,6 +53,7 @@ const ChangePeriodPicker = ({markedDays, setIsLoading}) => {
             }
 
             else if(dateString === state.user.cycle[i].bleed_end) {
+                
                 setSelectedId(state.user.cycle[i].id)
                 let m0 = moment.utc(state.user.cycle[i].bleed_start)
                 m0 = m0.add(2, 'days')
@@ -96,22 +97,26 @@ const ChangePeriodPicker = ({markedDays, setIsLoading}) => {
 
             updatePeriod(state.token, body)
             .then( res => {
-                if(res && res.status && (res.status == 403 || res.status == 400) ) {
-                    console.log("Timed Out sign in again")
-                    dispatcher(actions.setUser(null))
-                    dispatcher(actions.setToken(null))
-                    dispatcher(actions.setSignIn(false))
-                    dispatcher(actions.setSharedUsers(null))
-                    history.push("/Login")
-                }
-                else if (res && res.data && res.data.email) {
+                if (res && res.status === 200 && res.data && res.data.email) {
                     console.log(res)
                     dispatcher(actions.setUser(res.data))
                 }else {
                     throw "error"
                 }
             }).then(() => { setIsLoading(false) } )
-            .catch(e => setIsLoading(false) )
+            .catch(e => {
+                if(e.response && e.response.status && 
+                    (e.response.status == 403 || e.response.status == 400) ) {
+                    console.log("Timed Out sign in again")
+                    dispatcher(actions.setUser(null))
+                    dispatcher(actions.setToken(null))
+                    dispatcher(actions.setSignIn(false))
+                    dispatcher(actions.setSharedUsers(null))
+                    history.push("/Login")
+                } else{
+                    setIsLoading(false) 
+                }   
+            })
 
         }else{
             setShow(false)
